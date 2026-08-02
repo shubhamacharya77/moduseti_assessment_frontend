@@ -14,6 +14,9 @@ import {
   CheckCircle2,
   User,
   Trash2,
+  DollarSign,
+  Users,
+  Search,
 } from 'lucide-react';
 
 const BACKEND_URL = 'http://localhost:8000';
@@ -40,6 +43,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeChartData, setActiveChartData] = useState<ChartDataPayload | null>(null);
   const [activeCitations, setActiveCitations] = useState<any[]>([]);
+  const [selectedCitationIndex, setSelectedCitationIndex] = useState<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([WELCOME_MESSAGE]);
@@ -57,6 +61,7 @@ export default function ChatPage() {
     setMessages([WELCOME_MESSAGE]);
     setActiveChartData(null);
     setActiveCitations([]);
+    setSelectedCitationIndex(null);
   };
 
   const handleSendMessage = async (queryText: string) => {
@@ -105,6 +110,7 @@ export default function ChatPage() {
 
       if (data.evidence_citations) {
         setActiveCitations(data.evidence_citations);
+        setSelectedCitationIndex(0);
       }
     } catch (err: any) {
       const errorMsg: ChatMessageItem = {
@@ -116,6 +122,49 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const formatValue = (key: string, val: any) => {
+    if (val === null || val === undefined) return 'N/A';
+    if (typeof val === 'number') {
+      if (
+        key.toLowerCase().includes('revenue') ||
+        key.toLowerCase().includes('profit') ||
+        key.toLowerCase().includes('spend') ||
+        key.toLowerCase().includes('size')
+      ) {
+        return `₹${val.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+      }
+      if (
+        key.toLowerCase().includes('pct') ||
+        key.toLowerCase().includes('margin') ||
+        key.toLowerCase().includes('rate')
+      ) {
+        return `${val}%`;
+      }
+      return val.toLocaleString('en-IN');
+    }
+    return String(val);
+  };
+
+  const formatKeyName = (key: string) => {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
+  };
+
+  const getSourceIcon = (category?: string, source?: string) => {
+    const catLower = (category || '').toLowerCase();
+    const srcLower = (source || '').toLowerCase();
+    if (srcLower.includes('sales') || catLower.includes('sales'))
+      return <DollarSign className="w-3.5 h-3.5 text-indigo-400" />;
+    if (srcLower.includes('customer') || catLower.includes('customer'))
+      return <Users className="w-3.5 h-3.5 text-emerald-400" />;
+    if (srcLower.includes('knowledge') || srcLower.includes('pdf') || catLower.includes('document'))
+      return <FileText className="w-3.5 h-3.5 text-purple-400" />;
+    return <Globe className="w-3.5 h-3.5 text-blue-400" />;
   };
 
   const QUICK_PROMPTS = [
@@ -226,17 +275,21 @@ export default function ChatPage() {
                       {!isUser && msg.citations && msg.citations.length > 0 && (
                         <div className="pt-2.5 border-t border-slate-800/80 flex flex-wrap gap-1.5">
                           {msg.citations.map((cit, idx) => (
-                            <span
+                            <button
                               key={idx}
                               onClick={() => {
                                 if (msg.chartData) setActiveChartData(msg.chartData);
-                                if (msg.citations) setActiveCitations(msg.citations);
+                                if (msg.citations) {
+                                  setActiveCitations(msg.citations);
+                                  setSelectedCitationIndex(idx);
+                                }
                               }}
-                              className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 cursor-pointer hover:bg-indigo-500/20 transition-colors"
+                              className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all cursor-pointer shadow-sm"
+                              title="Click to inspect source fact details in right panel"
                             >
-                              <FileText className="w-3 h-3 text-indigo-400" />
+                              <Search className="w-3 h-3 text-indigo-400" />
                               <span>[{cit.source}]</span>
-                            </span>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -330,33 +383,72 @@ export default function ChatPage() {
               </div>
             )}
 
-            {/* Render Supporting Citations */}
+            {/* Render Supporting Citations with Expanded Structured Metric Details */}
             {activeCitations.length > 0 && (
               <div className="space-y-3 pt-4 border-t border-slate-800/80 shrink-0 pb-4">
                 <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                   <Globe className="w-4 h-4 text-indigo-400" /> Supporting Grounded Citations ({activeCitations.length})
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {activeCitations.map((item, idx) => {
-                    const isDoc = typeof item.details === 'object' && item.details !== null && 'text_chunk' in item.details;
-                    return (
-                      <div key={idx} className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-slate-200 flex items-center gap-1">
-                            <Globe className="w-3.5 h-3.5 text-indigo-400" /> {item.source}
-                          </span>
-                          <span className="text-[10px] text-emerald-400 font-medium">{item.confidence}</span>
-                        </div>
-                        <h5 className="font-bold text-white">{item.title}</h5>
+                    const isDoc =
+                      typeof item.details === 'object' && item.details !== null && 'text_chunk' in item.details;
+                    const isDict = typeof item.details === 'object' && item.details !== null && !isDoc;
+                    const isSelected = selectedCitationIndex === idx;
 
-                        {isDoc ? (
-                          <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300 italic">
-                            <span className="text-[10px] text-purple-400 font-semibold block not-italic mb-1">
-                              📄 Page {item.details.page || 1} Excerpt:
-                            </span>
-                            "{item.details.text_chunk}"
-                          </div>
-                        ) : null}
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedCitationIndex(idx)}
+                        className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2.5 text-xs shadow-lg ${
+                          isSelected
+                            ? 'bg-slate-900/90 border-indigo-500/80 ring-1 ring-indigo-500/60'
+                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                            {getSourceIcon(item.category, item.source)}
+                            <span>{item.source}</span>
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> {item.confidence}
+                          </span>
+                        </div>
+
+                        <h5 className="font-bold text-white text-xs">{item.title}</h5>
+
+                        {/* Structured Fact Details (No raw JSON!) */}
+                        <div>
+                          {isDoc ? (
+                            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-200 italic leading-relaxed">
+                              <span className="text-[10px] text-purple-400 font-semibold block not-italic mb-1">
+                                📄 Document: {item.details.doc_name || 'Uploaded PDF'} (Page {item.details.page || 1})
+                              </span>
+                              "{item.details.text_chunk}"
+                            </div>
+                          ) : isDict ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              {Object.entries(item.details).map(([k, v], i) => {
+                                if (typeof v === 'object' && v !== null && !Array.isArray(v)) return null;
+                                return (
+                                  <div key={i} className="p-2 rounded-lg bg-slate-950 border border-slate-800/80 flex flex-col justify-between">
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block truncate">
+                                      {formatKeyName(k)}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-100 block truncate mt-0.5">
+                                      {formatValue(k, v)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-lg bg-slate-950 text-slate-200 text-xs">
+                              {String(item.details)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
