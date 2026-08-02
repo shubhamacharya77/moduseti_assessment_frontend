@@ -99,7 +99,10 @@ export default function ChatPage() {
 
       if (data.chart_data) {
         setActiveChartData(data.chart_data);
+      } else {
+        setActiveChartData(null);
       }
+
       if (data.evidence_citations) {
         setActiveCitations(data.evidence_citations);
       }
@@ -122,6 +125,11 @@ export default function ChatPage() {
     { label: '🌍 Regional Sales', query: 'Show regional revenue distribution' },
     { label: '📄 HR Policy', query: 'What does our HR policy say about leave and work guidelines?' },
   ];
+
+  // Identify document citations for RAG mode
+  const docCitations = activeCitations.filter(
+    (item) => typeof item.details === 'object' && item.details !== null && 'text_chunk' in item.details
+  );
 
   return (
     <>
@@ -281,7 +289,7 @@ export default function ChatPage() {
           </div>
 
           {/* RIGHT HALF: DYNAMIC GRAPH & RAG EVIDENCE INSPECTOR PANEL */}
-          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col min-h-0 h-full shadow-2xl overflow-y-auto space-y-6">
+          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 pb-8 flex flex-col min-h-0 h-full shadow-2xl overflow-y-auto space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-indigo-400" />
@@ -295,6 +303,23 @@ export default function ChatPage() {
             {/* Render Live Recharts Graph if chartData present */}
             {activeChartData ? (
               <DynamicChatChart chartData={activeChartData} />
+            ) : docCitations.length > 0 ? (
+              /* PDF Document RAG Fact Card for Document Q&A */
+              <div className="glass-card p-6 rounded-2xl border border-purple-500/30 bg-slate-900/90 shadow-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" /> Document RAG Fact Citation
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-medium">Vector Similarity Match</span>
+                </div>
+                <h4 className="text-sm font-bold text-white">{docCitations[0].title}</h4>
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 italic leading-relaxed">
+                  <span className="text-[10px] text-purple-400 font-semibold block not-italic mb-1">
+                    📄 Document: {docCitations[0].details.doc_name} (Page {docCitations[0].details.page || 1})
+                  </span>
+                  "{docCitations[0].details.text_chunk}"
+                </div>
+              </div>
             ) : (
               <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/60 h-64 flex flex-col items-center justify-center text-slate-400 text-center space-y-2">
                 <TrendingUp className="w-8 h-8 text-indigo-400 mb-1" />
@@ -305,11 +330,11 @@ export default function ChatPage() {
               </div>
             )}
 
-            {/* Render RAG Document Quotes & Citations */}
+            {/* Render Supporting Citations */}
             {activeCitations.length > 0 && (
-              <div className="space-y-3 pt-4 border-t border-slate-800/80 shrink-0">
+              <div className="space-y-3 pt-4 border-t border-slate-800/80 shrink-0 pb-4">
                 <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-purple-400" /> Supporting Document Citations ({activeCitations.length})
+                  <Globe className="w-4 h-4 text-indigo-400" /> Supporting Grounded Citations ({activeCitations.length})
                 </h4>
                 <div className="space-y-2">
                   {activeCitations.map((item, idx) => {
