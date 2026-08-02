@@ -9,30 +9,34 @@ import {
   Cell,
   CartesianGrid,
 } from 'recharts';
-import { ShieldAlert } from 'lucide-react';
+import { Award } from 'lucide-react';
 
-interface CustomerChurnChartProps {
-  churnRiskBreakdown?: { [key: string]: number };
+interface LoyaltyTierChartProps {
+  loyaltyTierBreakdown?: { [key: string]: number };
 }
 
-export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRiskBreakdown = {} }) => {
-  const COLORS: { [key: string]: string } = {
-    High: '#ef4444',
-    Medium: '#f59e0b',
-    Low: '#10b981',
-  };
+const TIER_COLORS: { [key: string]: string } = {
+  Platinum: '#a855f7',
+  Gold: '#f59e0b',
+  Silver: '#94a3b8',
+  Bronze: '#d97706',
+  Standard: '#3b82f6',
+};
 
-  const chartData = Object.entries(churnRiskBreakdown).map(([riskLevel, count]) => ({
-    riskLevel,
+export const LoyaltyTierChart: React.FC<LoyaltyTierChartProps> = ({
+  loyaltyTierBreakdown = {},
+}) => {
+  const chartData = Object.entries(loyaltyTierBreakdown).map(([tier, count]) => ({
+    tier,
     count,
-    color: COLORS[riskLevel] || '#6366f1',
+    color: TIER_COLORS[tier] || '#10b981',
   }));
 
   if (chartData.length === 0) {
     return (
       <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/60 h-72 flex flex-col items-center justify-center text-slate-400">
-        <ShieldAlert className="w-8 h-8 mb-2 text-slate-600" />
-        <span className="text-xs">No customer churn risk breakdown data loaded yet. Upload Customer CSV.</span>
+        <Award className="w-8 h-8 mb-2 text-slate-600" />
+        <span className="text-xs">No customer loyalty tier data available yet.</span>
       </div>
     );
   }
@@ -41,7 +45,7 @@ export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRis
     <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-amber-400" /> Customer Churn Risk Vector Analysis
+          <Award className="w-4 h-4 text-purple-400" /> Customer Loyalty Tier Distribution
         </h3>
         <span className="text-xs text-slate-400">Customer Count</span>
       </div>
@@ -50,7 +54,7 @@ export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRis
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-            <XAxis dataKey="riskLevel" stroke="#94a3b8" fontSize={11} tickLine={false} />
+            <XAxis dataKey="tier" stroke="#94a3b8" fontSize={11} tickLine={false} />
             <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
             <Tooltip
               contentStyle={{

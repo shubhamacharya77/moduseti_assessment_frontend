@@ -1,15 +1,7 @@
 import React from 'react';
-import { ArrowRight, BarChart3, FileSpreadsheet, FileText, Zap } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, FileText, Zap, Sparkles } from 'lucide-react';
 
-interface HeaderProps {
-  onGenerateStrategy: () => void;
-  isGenerating?: boolean;
-}
-
-export const Header: React.FC<HeaderProps> = ({
-  onGenerateStrategy,
-  isGenerating = false,
-}) => {
+export const Header: React.FC = () => {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-slate-800 p-8 my-6 shadow-2xl">
       <div className="relative z-10 max-w-3xl">
@@ -26,15 +18,11 @@ export const Header: React.FC<HeaderProps> = ({
           Synthesize company PDFs, HR policies, sales records, and customer churn data into deterministic analytics and explainable transformation recommendations powered by Groq & LangGraph.
         </p>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={onGenerateStrategy}
-            disabled={isGenerating}
-            className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold text-sm shadow-xl shadow-purple-500/20 hover:opacity-95 transition-all disabled:opacity-50"
-          >
-            <span>{isGenerating ? 'Analyzing Evidence Package...' : 'Run Strategic Assessment'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
+            <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <span>Real-time Strategy Playbook Active</span>
+          </div>
 
           <div className="flex items-center space-x-4 text-xs text-slate-400">
             <span className="flex items-center gap-1.5"><FileText className="w-4 h-4 text-indigo-400" /> PDF RAG</span>

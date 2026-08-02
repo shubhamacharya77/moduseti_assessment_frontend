@@ -63,6 +63,8 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({ monthlyTre
                 color: '#f8fafc',
                 fontSize: '12px',
               }}
+              itemStyle={{ color: '#e2e8f0' }}
+              labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
               formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
             />
             <Area

@@ -6,33 +6,31 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Cell,
   CartesianGrid,
+  Cell,
 } from 'recharts';
-import { ShieldAlert } from 'lucide-react';
+import { Layers } from 'lucide-react';
 
-interface CustomerChurnChartProps {
-  churnRiskBreakdown?: { [key: string]: number };
+interface CategoryBreakdownChartProps {
+  categoryBreakdown?: { [key: string]: number };
 }
 
-export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRiskBreakdown = {} }) => {
-  const COLORS: { [key: string]: string } = {
-    High: '#ef4444',
-    Medium: '#f59e0b',
-    Low: '#10b981',
-  };
+const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'];
 
-  const chartData = Object.entries(churnRiskBreakdown).map(([riskLevel, count]) => ({
-    riskLevel,
-    count,
-    color: COLORS[riskLevel] || '#6366f1',
+export const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({
+  categoryBreakdown = {},
+}) => {
+  const chartData = Object.entries(categoryBreakdown).map(([category, revenue], index) => ({
+    category,
+    revenue,
+    color: COLORS[index % COLORS.length],
   }));
 
   if (chartData.length === 0) {
     return (
       <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/60 h-72 flex flex-col items-center justify-center text-slate-400">
-        <ShieldAlert className="w-8 h-8 mb-2 text-slate-600" />
-        <span className="text-xs">No customer churn risk breakdown data loaded yet. Upload Customer CSV.</span>
+        <Layers className="w-8 h-8 mb-2 text-slate-600" />
+        <span className="text-xs">No category revenue data available yet.</span>
       </div>
     );
   }
@@ -41,17 +39,22 @@ export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRis
     <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-amber-400" /> Customer Churn Risk Vector Analysis
+          <Layers className="w-4 h-4 text-indigo-400" /> Product Category Revenue
         </h3>
-        <span className="text-xs text-slate-400">Customer Count</span>
+        <span className="text-xs text-slate-400">Revenue in INR (₹)</span>
       </div>
 
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-            <XAxis dataKey="riskLevel" stroke="#94a3b8" fontSize={11} tickLine={false} />
-            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+            <XAxis dataKey="category" stroke="#94a3b8" fontSize={11} tickLine={false} />
+            <YAxis
+              stroke="#94a3b8"
+              fontSize={11}
+              tickLine={false}
+              tickFormatter={(val) => `₹${(val / 100000).toFixed(0)}L`}
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#0f172a',
@@ -62,9 +65,9 @@ export const CustomerChurnChart: React.FC<CustomerChurnChartProps> = ({ churnRis
               }}
               itemStyle={{ color: '#e2e8f0' }}
               labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-              formatter={(value: any) => [`${value} Customers`, 'Count']}
+              formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
             />
-            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+            <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
