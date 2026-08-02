@@ -127,20 +127,25 @@ export default function ChatPage() {
   const formatValue = (key: string, val: any) => {
     if (val === null || val === undefined) return 'N/A';
     if (typeof val === 'number') {
+      const kLower = key.toLowerCase();
+      // Check percentage & margin FIRST
       if (
-        key.toLowerCase().includes('revenue') ||
-        key.toLowerCase().includes('profit') ||
-        key.toLowerCase().includes('spend') ||
-        key.toLowerCase().includes('size')
-      ) {
-        return `₹${val.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
-      }
-      if (
-        key.toLowerCase().includes('pct') ||
-        key.toLowerCase().includes('margin') ||
-        key.toLowerCase().includes('rate')
+        kLower.includes('pct') ||
+        kLower.includes('margin') ||
+        kLower.includes('rate') ||
+        kLower.includes('ratio')
       ) {
         return `${val}%`;
+      }
+      // Then check currency amounts
+      if (
+        kLower.includes('revenue') ||
+        kLower.includes('profit') ||
+        kLower.includes('spend') ||
+        kLower.includes('size') ||
+        kLower.includes('price')
+      ) {
+        return `₹${val.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
       }
       return val.toLocaleString('en-IN');
     }
