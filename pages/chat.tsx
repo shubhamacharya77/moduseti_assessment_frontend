@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { Navbar } from '@/components/Navbar';
 import { DynamicChatChart, ChartDataPayload } from '@/charts/DynamicChatChart';
@@ -9,7 +9,6 @@ import {
   Loader2,
   TrendingUp,
   BarChart3,
-  ShieldAlert,
   FileText,
   Globe,
   CheckCircle2,
@@ -35,6 +34,8 @@ export default function ChatPage() {
   const [activeChartData, setActiveChartData] = useState<ChartDataPayload | null>(null);
   const [activeCitations, setActiveCitations] = useState<any[]>([]);
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
   const [messages, setMessages] = useState<ChatMessageItem[]>([
     {
       id: 'welcome',
@@ -42,6 +43,15 @@ export default function ChatPage() {
       text: 'Good morning, Executive Leader. I am your Grounded AI Strategy Analyst. Ask me any question regarding your sales velocity, customer churn vectors, HR policies, or strategic transformation plays.',
     },
   ]);
+
+  // Automatic smooth scroll to bottom when messages update
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (queryText: string) => {
     if (!queryText.trim() || isLoading) return;
@@ -114,14 +124,14 @@ export default function ChatPage() {
         <meta name="description" content="Split-Screen Executive AI Chat with Live Dynamic Graph Generation" />
       </Head>
 
-      <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col">
+      <div className="h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col overflow-hidden">
         {/* Navigation Bar */}
         <Navbar />
 
         {/* Main Split-Screen Layout */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-5rem)]">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 overflow-hidden">
           {/* LEFT HALF: INTERACTIVE CHAT PANEL */}
-          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col justify-between shadow-2xl h-full overflow-hidden">
+          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col min-h-0 h-full shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
               <div className="flex items-center space-x-3">
@@ -151,8 +161,8 @@ export default function ChatPage() {
               ))}
             </div>
 
-            {/* Message Stream */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+            {/* Message Stream with Smooth Auto-Scroll & Custom Scrollbar */}
+            <div className="flex-1 overflow-y-auto min-h-0 py-4 space-y-4 pr-2">
               {messages.map((msg) => {
                 const isUser = msg.sender === 'user';
                 return (
@@ -224,6 +234,9 @@ export default function ChatPage() {
                   <span>Analyzing evidence & generating dynamic visualization...</span>
                 </div>
               )}
+
+              {/* Scroll Anchor Target */}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Form */}
@@ -253,7 +266,7 @@ export default function ChatPage() {
           </div>
 
           {/* RIGHT HALF: DYNAMIC GRAPH & RAG EVIDENCE INSPECTOR PANEL */}
-          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col justify-between shadow-2xl h-full overflow-y-auto space-y-6">
+          <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col min-h-0 h-full shadow-2xl overflow-y-auto space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-indigo-400" />
