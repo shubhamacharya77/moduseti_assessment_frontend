@@ -13,6 +13,7 @@ import {
   Globe,
   CheckCircle2,
   User,
+  Trash2,
 } from 'lucide-react';
 
 const BACKEND_URL = 'http://localhost:8000';
@@ -28,6 +29,12 @@ interface ChatMessageItem {
   expectedOutcome?: string;
 }
 
+const WELCOME_MESSAGE: ChatMessageItem = {
+  id: 'welcome',
+  sender: 'assistant',
+  text: 'Good morning, Executive Leader. I am your Grounded AI Strategy Analyst. Ask me any question regarding your sales velocity, customer churn vectors, HR policies, or strategic transformation plays.',
+};
+
 export default function ChatPage() {
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,14 +42,7 @@ export default function ChatPage() {
   const [activeCitations, setActiveCitations] = useState<any[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  const [messages, setMessages] = useState<ChatMessageItem[]>([
-    {
-      id: 'welcome',
-      sender: 'assistant',
-      text: 'Good morning, Executive Leader. I am your Grounded AI Strategy Analyst. Ask me any question regarding your sales velocity, customer churn vectors, HR policies, or strategic transformation plays.',
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessageItem[]>([WELCOME_MESSAGE]);
 
   // Automatic smooth scroll to bottom when messages update
   const scrollToBottom = () => {
@@ -52,6 +52,12 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  const handleClearChat = () => {
+    setMessages([WELCOME_MESSAGE]);
+    setActiveChartData(null);
+    setActiveCitations([]);
+  };
 
   const handleSendMessage = async (queryText: string) => {
     if (!queryText.trim() || isLoading) return;
@@ -132,7 +138,7 @@ export default function ChatPage() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 overflow-hidden">
           {/* LEFT HALF: INTERACTIVE CHAT PANEL */}
           <div className="glass-card rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col min-h-0 h-full shadow-2xl overflow-hidden">
-            {/* Header */}
+            {/* Header with Clear Chat Button */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/20">
@@ -145,6 +151,15 @@ export default function ChatPage() {
                   <span className="text-xs text-slate-400">Grounded in company PDFs, Sales & Customer metrics</span>
                 </div>
               </div>
+
+              <button
+                onClick={handleClearChat}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-500/30 text-xs font-semibold transition-all shadow-sm"
+                title="Clear chat message history"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-slate-400 hover:text-red-400" />
+                <span>Clear Chat</span>
+              </button>
             </div>
 
             {/* Quick Prompt Chips */}
