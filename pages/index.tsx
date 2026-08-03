@@ -14,7 +14,7 @@ import { CustomerSegmentChart } from '@/charts/CustomerSegmentChart';
 import { LoyaltyTierChart } from '@/charts/LoyaltyTierChart';
 import { StrategicRecommendationCard } from '@/components/StrategicRecommendationCard';
 import { EvidenceDrawer, EvidenceDrawerItem } from '@/components/EvidenceDrawer';
-import { TrendingUp, Users, Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, Users } from 'lucide-react';
 
 const BACKEND_URL = 'http://localhost:8000';
 const MASTER_PROMPT = 'What high-priority strategic transformation recommendations should we execute?';
