@@ -17,6 +17,7 @@ import {
   DollarSign,
   Users,
   Search,
+  Lightbulb,
 } from 'lucide-react';
 
 const BACKEND_URL = 'http://localhost:8000';
@@ -25,6 +26,7 @@ interface ChatMessageItem {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
+  recommendation?: string;
   citations?: any[];
   chartData?: ChartDataPayload | null;
   strategicIssues?: string[];
@@ -43,7 +45,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeChartData, setActiveChartData] = useState<ChartDataPayload | null>(null);
   const [activeCitations, setActiveCitations] = useState<any[]>([]);
-  const [selectedCitationIndex, setSelectedCitationIndex] = useState<number | null>(null);
+  const [selectedCitationIndex, setSelectedCitationIndex] = useState<number>(0);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([WELCOME_MESSAGE]);
@@ -61,13 +63,14 @@ export default function ChatPage() {
     setMessages([WELCOME_MESSAGE]);
     setActiveChartData(null);
     setActiveCitations([]);
-    setSelectedCitationIndex(null);
+    setSelectedCitationIndex(0);
   };
 
-  const handleSendMessage = async (queryText: string) => {
-    if (!queryText.trim() || isLoading) return;
+  const handleSendMessage = async (queryText?: string) => {
+    const textToSend = queryText || inputQuery;
+    if (!textToSend.trim() || isLoading) return;
 
-    const userText = queryText.trim();
+    const userText = textToSend.trim();
     setInputQuery('');
 
     const userMsg: ChatMessageItem = {
@@ -92,7 +95,8 @@ export default function ChatPage() {
       const assistantMsg: ChatMessageItem = {
         id: `assistant-${Date.now()}`,
         sender: 'assistant',
-        text: data.answer || 'No specific recommendation generated.',
+        text: data.answer || 'No specific answer generated.',
+        recommendation: data.recommendation || '',
         citations: data.evidence_citations || [],
         chartData: data.chart_data || null,
         strategicIssues: data.strategic_issues || [],
@@ -258,6 +262,19 @@ export default function ChatPage() {
                       }`}
                     >
                       <div className="whitespace-pre-line">{msg.text}</div>
+
+                      {/* Actionable Recommendation if present */}
+                      {!isUser && msg.recommendation && msg.recommendation.trim().length > 0 && (
+                        <div className="pt-2 border-t border-slate-800">
+                          <span className="text-[11px] font-bold text-emerald-400 mb-1 flex items-center gap-1">
+                            <Lightbulb className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Recommended Action:</span>
+                          </span>
+                          <p className="text-xs text-slate-300 leading-relaxed bg-emerald-950/20 border border-emerald-500/20 p-2.5 rounded-lg">
+                            {msg.recommendation}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Strategic Issues if present */}
                       {!isUser && msg.strategicIssues && msg.strategicIssues.length > 0 && (
